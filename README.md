@@ -1,4 +1,4 @@
-DX Cluster Aggregator - Beta
+# DX Cluster Aggregator - Beta
 
 This app aggregates DX spots from multiple sources simultaneously, for selected bands (160m to 6m) and modes (FT8, CW, SSB, etc).
 
