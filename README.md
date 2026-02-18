@@ -9,16 +9,16 @@ This is ultimately a web app, for now the "server" is on your PC during testing.
 Accessibility features are  implemented and testable.
 
 KEY COMMANDS (keep this short list handy)
-<br>Ctrl+S — Focus first row in the spot list
-<br>Ctrl+P — Focus the optional callsign/prefix search/match box
-<br>Ctrl+B — Focus the first band filter checkbox
-<br>Ctrl+M — Focus the first mode filter checkbox
+<br>Ctrl+S - Focus first row in the spot list (your "home base")
+<br>F8 - Refresh grid with new spots, focus goes to top of list
+<br>Ctrl+P - Focus the optional callsign/prefix search/match box
+<br>Ctrl+B - Focus the first band filter checkbox
+<br>Ctrl+M - Focus the first mode filter checkbox
 
-Note: For now, FT8 spots are unfiltered, and come in far too quickly. 
-Leave FT8 mode unchecked most of the time while evaluating, or enable only briefly... filtering will happen after some further discussion.
+Note: For v0.2, spots are shown on either a short or long list, selectable. The list is sorted so that most-distant is at the top. Options and spots grid are now side-by-side.
 
-The list freezes while you tab up and down. After a minute of no activity, it starts scfrolling again. Ctrl-S is "home base", the top of the list, very handy. 
-Ctrl-S, as in "spots".
+The list freezes when it gets focus. You tab / shift + tab up and down. After a minute of no activity, it starts scrolling again. 
+<br>Ctrl-S is "home base", the top of the list, very handy.... Ctrl-S, as in "spots".
 
 DOWNLOAD
 See "Releases" at:
