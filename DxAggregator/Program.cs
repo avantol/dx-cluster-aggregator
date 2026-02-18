@@ -12,6 +12,12 @@ builder.Services.AddDbContext<SpotDb>(options =>
 // Core pipeline (singleton — all data sources feed into it)
 builder.Services.AddSingleton<SpotPipeline>();
 
+// Callsign-to-location lookup via cty.dat
+builder.Services.AddSingleton<CtyParser>();
+
+// User location (single-user desktop app)
+builder.Services.AddSingleton<UserLocation>();
+
 // Background services
 builder.Services.AddHostedService<SpotProcessor>();
 builder.Services.AddHostedService<G7VrdClient>();
@@ -46,10 +52,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Ensure database is created
+// Fresh database on each startup (spots are ephemeral with 20min expiry)
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<SpotDb>();
+    db.Database.EnsureDeleted();
     db.Database.EnsureCreated();
 }
 
@@ -99,6 +106,8 @@ app.MapGet("/api/spots", async (SpotDb db,
             s.Source,
             s.DxccEntity,
             s.Grid,
+            s.DistanceKm,
+            s.Bearing,
             s.Comment,
             s.DesirabilityScore
         })
@@ -138,7 +147,82 @@ app.MapGet("/api/spots/bands", async (SpotDb db) =>
 .WithName("GetActiveBands")
 ;
 
+// POST /api/location — set user location from browser geolocation
+app.MapPost("/api/location", async (SpotDb db, UserLocation store, CtyParser cty,
+    double lat, double lon) =>
+{
+    store.Latitude = lat;
+    store.Longitude = lon;
+    store.GridSquare = CtyParser.LatLonToGrid(lat, lon);
+
+    // Recalculate distance for all existing spots that have DxLatitude/DxLongitude
+    var spots = await db.Spots
+        .Where(s => s.DxLatitude != null && s.DxLongitude != null)
+        .ToListAsync();
+
+    foreach (var s in spots)
+    {
+        s.DistanceKm = Math.Round(CtyParser.HaversineKm(lat, lon, s.DxLatitude!.Value, s.DxLongitude!.Value));
+        s.Bearing = Math.Round(CtyParser.BearingDeg(lat, lon, s.DxLatitude!.Value, s.DxLongitude!.Value));
+    }
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new { lat, lon, grid = store.GridSquare, recalculated = spots.Count });
+})
+.WithName("SetUserLocation")
+;
+
+// POST /api/location/grid — set user location from grid square
+app.MapPost("/api/location/grid", async (SpotDb db, UserLocation store, string grid) =>
+{
+    var loc = CtyParser.GridToLatLon(grid);
+    if (loc == null)
+        return Results.BadRequest(new { error = "Invalid grid square. Use 4 or 6 characters, e.g. FN31pr" });
+
+    var lat = loc.Value.Lat;
+    var lon = loc.Value.Lon;
+    store.Latitude = lat;
+    store.Longitude = lon;
+    store.GridSquare = grid.ToUpperInvariant();
+
+    var spots = await db.Spots
+        .Where(s => s.DxLatitude != null && s.DxLongitude != null)
+        .ToListAsync();
+
+    foreach (var s in spots)
+    {
+        s.DistanceKm = Math.Round(CtyParser.HaversineKm(lat, lon, s.DxLatitude!.Value, s.DxLongitude!.Value));
+        s.Bearing = Math.Round(CtyParser.BearingDeg(lat, lon, s.DxLatitude!.Value, s.DxLongitude!.Value));
+    }
+
+    await db.SaveChangesAsync();
+
+    return Results.Ok(new { lat, lon, grid = store.GridSquare, recalculated = spots.Count });
+})
+.WithName("SetUserLocationFromGrid")
+;
+
+// GET /api/location — get current user location
+app.MapGet("/api/location", (UserLocation store) =>
+{
+    if (store.Latitude == null) return Results.NotFound();
+    return Results.Ok(new { lat = store.Latitude, lon = store.Longitude, grid = store.GridSquare });
+})
+.WithName("GetUserLocation")
+;
+
 // SignalR hub endpoint
 app.MapHub<SpotHub>("/hubs/spots").RequireCors("SignalR");
 
 app.Run();
+
+/// <summary>
+/// Simple in-memory store for the user's location (single-user desktop app).
+/// </summary>
+public class UserLocation
+{
+    public double? Latitude { get; set; }
+    public double? Longitude { get; set; }
+    public string? GridSquare { get; set; }
+}

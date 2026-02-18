@@ -63,13 +63,18 @@ public class SpotProcessor : BackgroundService
     private readonly SpotPipeline _pipeline;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<SpotProcessor> _logger;
+    private readonly CtyParser _cty;
+    private readonly UserLocation _userLocation;
     private readonly Deduplicator _dedup = new();
 
-    public SpotProcessor(SpotPipeline pipeline, IServiceScopeFactory scopeFactory, ILogger<SpotProcessor> logger)
+    public SpotProcessor(SpotPipeline pipeline, IServiceScopeFactory scopeFactory,
+        ILogger<SpotProcessor> logger, CtyParser cty, UserLocation userLocation)
     {
         _pipeline = pipeline;
         _scopeFactory = scopeFactory;
         _logger = logger;
+        _cty = cty;
+        _userLocation = userLocation;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -87,14 +92,17 @@ public class SpotProcessor : BackgroundService
                 // Stage 2: Normalize
                 Normalize(spot);
 
-                // Stage 3: Deduplicate (same call + freq within 60s)
+                // Stage 3: Enrich with location and distance
+                Enrich(spot);
+
+                // Stage 4: Deduplicate (same call + freq within 60s)
                 if (_dedup.IsDuplicate(spot))
                     continue;
 
-                // Stage 4: Store in SQLite
+                // Stage 5: Store in SQLite
                 await Store(spot, stoppingToken);
 
-                // Stage 5: Broadcast to subscribers
+                // Stage 6: Broadcast to subscribers
                 _pipeline.RaiseNewSpot(spot);
             }
             catch (Exception ex)
@@ -122,6 +130,45 @@ public class SpotProcessor : BackgroundService
             spot.Mode = SpotRecord.InferModeFromFrequency(spot.Frequency) ?? "unknown";
         if (spot.Timestamp == default)
             spot.Timestamp = DateTime.UtcNow;
+    }
+
+    private void Enrich(SpotRecord spot)
+    {
+        // Resolve DX station lat/lon
+        (double Lat, double Lon)? dxLoc = null;
+
+        // Priority 1: Grid square from the feed (more precise)
+        if (!string.IsNullOrWhiteSpace(spot.Grid))
+            dxLoc = CtyParser.GridToLatLon(spot.Grid);
+
+        // Priority 2: cty.dat callsign prefix lookup (country center, approximate)
+        if (dxLoc == null)
+        {
+            var lookup = _cty.LookupCallsign(spot.DxCall);
+            if (lookup != null)
+            {
+                dxLoc = (lookup.Value.Lat, lookup.Value.Lon);
+                if (string.IsNullOrEmpty(spot.DxccEntity))
+                    spot.DxccEntity = lookup.Value.Entity;
+            }
+        }
+
+        if (dxLoc != null)
+        {
+            spot.DxLatitude = dxLoc.Value.Lat;
+            spot.DxLongitude = dxLoc.Value.Lon;
+
+            // Calculate distance and bearing if user location is known
+            if (_userLocation.Latitude != null && _userLocation.Longitude != null)
+            {
+                spot.DistanceKm = Math.Round(CtyParser.HaversineKm(
+                    _userLocation.Latitude.Value, _userLocation.Longitude.Value,
+                    dxLoc.Value.Lat, dxLoc.Value.Lon));
+                spot.Bearing = Math.Round(CtyParser.BearingDeg(
+                    _userLocation.Latitude.Value, _userLocation.Longitude.Value,
+                    dxLoc.Value.Lat, dxLoc.Value.Lon));
+            }
+        }
     }
 
     private async Task Store(SpotRecord spot, CancellationToken ct)

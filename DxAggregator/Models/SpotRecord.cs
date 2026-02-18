@@ -16,6 +16,8 @@ public class SpotRecord
     public string? Grid { get; set; }
     public double? DistanceKm { get; set; }
     public double? Bearing { get; set; }
+    public double? DxLatitude { get; set; }
+    public double? DxLongitude { get; set; }
     public bool? LotwUser { get; set; }
     public int DesirabilityScore { get; set; }
     public string? Comment { get; set; }

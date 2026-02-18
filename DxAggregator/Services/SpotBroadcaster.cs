@@ -50,6 +50,8 @@ public class SpotBroadcaster : IHostedService
             spot.Source,
             spot.DxccEntity,
             spot.Grid,
+            spot.DistanceKm,
+            spot.Bearing,
             spot.Comment,
             spot.DesirabilityScore
         });

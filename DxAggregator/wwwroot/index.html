@@ -10,98 +10,124 @@
 
 <a href="#spot-table" class="visually-hidden skip-link">Skip to spots table</a>
 
-<header>
-  <div class="header-left">
-    <img src="gator.svg" alt="" height="72" class="mascot" aria-hidden="true">
-    <div>
-      <h1>DX Cluster Aggregator</h1>
-      <p class="tagline">Accessible to blind and vision-impaired hams</p>
-    </div>
-  </div>
-  <div id="connection-status" role="status" aria-live="polite">Connecting...</div>
-</header>
-
 <main>
-  <!-- DX Alert — high-priority spots announced immediately -->
-  <div id="dx-alert" role="alert" aria-label="DX alert"></div>
+  <!-- Left panel: header + config -->
+  <div class="left-panel">
+    <header>
+      <div class="header-left">
+        <img src="gator.svg" alt="" width="69" height="33" class="mascot" aria-hidden="true">
+        <div>
+          <h1>DX Cluster Aggregator</h1>
+          <p class="tagline">Accessible to blind and vision-impaired hams</p>
+        </div>
+      </div>
+      <div class="header-status">
+        <div id="connection-status" role="status" aria-live="polite">Connecting...</div>
+        <div id="location-status" role="status" aria-live="polite">Location not set</div>
+      </div>
+    </header>
 
-  <!-- Filter controls -->
-  <section aria-label="Spot filters">
-    <fieldset>
-      <legend>Band Filter</legend>
-      <label><input type="checkbox" name="band" value="160m"> 160m</label>
-      <label><input type="checkbox" name="band" value="80m"> 80m</label>
-      <label><input type="checkbox" name="band" value="60m"> 60m</label>
-      <label><input type="checkbox" name="band" value="40m"> 40m</label>
-      <label><input type="checkbox" name="band" value="30m"> 30m</label>
-      <label><input type="checkbox" name="band" value="20m" checked> 20m</label>
-      <label><input type="checkbox" name="band" value="17m"> 17m</label>
-      <label><input type="checkbox" name="band" value="15m" checked> 15m</label>
-      <label><input type="checkbox" name="band" value="12m"> 12m</label>
-      <label><input type="checkbox" name="band" value="10m" checked> 10m</label>
-      <label><input type="checkbox" name="band" value="6m"> 6m</label>
-    </fieldset>
+    <!-- DX Alert — high-priority spots announced immediately -->
+    <div id="dx-alert" role="alert" aria-label="DX alert"></div>
 
-    <fieldset>
-      <legend>Mode Filter</legend>
-      <label><input type="checkbox" name="mode" value="FT8" checked> FT8</label>
-      <label><input type="checkbox" name="mode" value="FT4"> FT4</label>
-      <label><input type="checkbox" name="mode" value="CW"> CW</label>
-      <label><input type="checkbox" name="mode" value="SSB"> SSB</label>
-      <label><input type="checkbox" name="mode" value="RTTY"> RTTY</label>
-    </fieldset>
+    <!-- Filter controls -->
+    <section aria-label="Spot filters">
+      <fieldset>
+        <legend>Band Filter</legend>
+        <label><input type="checkbox" name="band" value="160m"> 160m</label>
+        <label><input type="checkbox" name="band" value="80m"> 80m</label>
+        <label><input type="checkbox" name="band" value="60m"> 60m</label>
+        <label><input type="checkbox" name="band" value="40m"> 40m</label>
+        <label><input type="checkbox" name="band" value="30m"> 30m</label>
+        <label><input type="checkbox" name="band" value="20m" checked> 20m</label>
+        <label><input type="checkbox" name="band" value="17m"> 17m</label>
+        <label><input type="checkbox" name="band" value="15m" checked> 15m</label>
+        <label><input type="checkbox" name="band" value="12m"> 12m</label>
+        <label><input type="checkbox" name="band" value="10m" checked> 10m</label>
+        <label><input type="checkbox" name="band" value="6m"> 6m</label>
+      </fieldset>
 
-    <div class="search-row">
-      <label for="callsign-search">Search callsign or prefix (optional):</label>
-      <input type="search" id="callsign-search" placeholder="e.g. W1AW"
-             aria-describedby="search-help" autocomplete="off">
-      <span id="search-help" class="visually-hidden">Type a callsign to filter the spot list</span>
-      <label><input type="checkbox" id="phonetic-toggle"> Announce using phonetic alphabet</label>
+      <fieldset>
+        <legend>Mode Filter</legend>
+        <label><input type="checkbox" name="mode" value="FT8" checked> FT8</label>
+        <label><input type="checkbox" name="mode" value="FT4"> FT4</label>
+        <label><input type="checkbox" name="mode" value="CW"> CW</label>
+        <label><input type="checkbox" name="mode" value="SSB"> SSB</label>
+        <label><input type="checkbox" name="mode" value="RTTY"> RTTY</label>
+      </fieldset>
+
+      <div class="search-row">
+        <label for="callsign-search">Search callsign:</label>
+        <input type="search" id="callsign-search" placeholder="e.g. W1AW"
+               aria-describedby="search-help" autocomplete="off">
+        <span id="search-help" class="visually-hidden">Type a callsign to filter the spot list</span>
+      </div>
+
+      <div class="list-controls" role="group" aria-label="Phonetic toggle">
+        <label><input type="checkbox" id="phonetic-toggle"> Phonetic</label>
+      </div>
+
+      <div class="list-controls" role="group" aria-label="List size controls">
+        <label><input type="radio" name="listsize" value="long" checked> Long list (100)</label>
+        <label><input type="radio" name="listsize" value="short"> Short list (20)</label>
+      </div>
+
+      <div class="list-controls" role="group" aria-label="Location controls">
+        <label for="grid-input">Grid:</label>
+        <input type="text" id="grid-input" placeholder="FN31pr" maxlength="6"
+               aria-describedby="grid-help" autocomplete="off" style="width:70px">
+        <button id="grid-set-btn" type="button">Set</button>
+        <button id="locate-btn" type="button"
+                aria-label="Auto-detect my location using browser GPS">Auto</button>
+        <span id="grid-help" class="visually-hidden">Enter your 4 or 6 character Maidenhead grid square to enable distance display</span>
+      </div>
+
+      <fieldset>
+        <legend>Screen Reader Announcements</legend>
+        <label><input type="radio" name="announce" value="polite" checked>
+          Freeze grid: Ctrl-S, update: F8</label>
+        <label><input type="radio" name="announce" value="off">
+          Off</label>
+      </fieldset>
+    </section>
+
+    <!-- Screen-reader-only announcer for batched updates -->
+    <div id="sr-announcer" aria-live="polite" class="visually-hidden">
     </div>
-
-    <fieldset>
-      <legend>Screen Reader Announcements</legend>
-      <label><input type="radio" name="announce" value="assertive">
-        Announce immediately, can interrupt</label>
-      <label><input type="radio" name="announce" value="polite" checked>
-        Announce with no interruption (default)</label>
-      <label><input type="radio" name="announce" value="off">
-        No screen reader in use</label>
-    </fieldset>
-  </section>
-
-  <!-- Spot count status -->
-  <div id="spot-status" role="status" aria-live="polite" aria-atomic="true">
-    No spots yet
   </div>
 
-  <!-- Spots data table -->
-  <table id="spot-table" aria-label="DX Cluster Spots" aria-rowcount="0">
-    <caption class="visually-hidden">DX Cluster Spots</caption>
-    <thead>
-      <tr>
-        <th scope="col" aria-sort="descending">Time (UTC)</th>
-        <th scope="col">DX Call</th>
-        <th scope="col">Frequency</th>
-        <th scope="col">Band</th>
-        <th scope="col">Mode</th>
-        <th scope="col">Spotter</th>
-        <th scope="col">SNR</th>
-        <th scope="col">Source</th>
-        <th scope="col">Comment</th>
-      </tr>
-    </thead>
-    <tbody id="spot-body" aria-live="polite" aria-relevant="additions">
-    </tbody>
-  </table>
+  <!-- Right panel: table -->
+  <div class="right-panel">
+    <!-- Spot count status -->
+    <div id="spot-status" role="status" aria-live="polite" aria-atomic="true">
+      No spots yet
+    </div>
 
-  <!-- Screen-reader-only announcer for batched updates -->
-  <div id="sr-announcer" aria-live="polite" class="visually-hidden">
+    <!-- Spots data table -->
+    <table id="spot-table" aria-label="DX Cluster Spots" aria-rowcount="0">
+      <caption class="visually-hidden">DX Cluster Spots</caption>
+      <thead>
+        <tr>
+          <th scope="col" aria-sort="descending">Time (UTC)</th>
+          <th scope="col">DX Call</th>
+          <th scope="col">Frequency</th>
+          <th scope="col">Band</th>
+          <th scope="col">Mode</th>
+          <th scope="col">Distance</th>
+          <th scope="col">Spotter</th>
+          <th scope="col">SNR</th>
+          <th scope="col">Source</th>
+          <th scope="col">Comment</th>
+        </tr>
+      </thead>
+      <tbody id="spot-body" aria-live="polite" aria-relevant="additions">
+      </tbody>
+    </table>
   </div>
 </main>
 
 <footer>
-  <p>Data: G7VRD aggregated feed (DX cluster + RBN + PSK Reporter + WSPR)</p>
+  <p>Data: G7VRD aggregated feed (DX cluster + RBN + PSK Reporter)</p>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.25/signalr.min.js"

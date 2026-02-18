@@ -39,8 +39,8 @@ public class SpotPruneService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<SpotPruneService> _logger;
-    private static readonly TimeSpan PruneInterval = TimeSpan.FromMinutes(15);
-    private static readonly TimeSpan MaxSpotAge = TimeSpan.FromHours(24);
+    private static readonly TimeSpan PruneInterval = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan MaxSpotAge = TimeSpan.FromMinutes(20);
 
     public SpotPruneService(IServiceScopeFactory scopeFactory, ILogger<SpotPruneService> logger)
     {
@@ -82,7 +82,7 @@ public class SpotPruneService : BackgroundService
         {
             db.Spots.RemoveRange(oldSpots);
             await db.SaveChangesAsync(ct);
-            _logger.LogInformation("Pruned {Count} spots older than 24h", oldSpots.Count);
+            _logger.LogInformation("Pruned {Count} spots older than 20min", oldSpots.Count);
         }
     }
 }

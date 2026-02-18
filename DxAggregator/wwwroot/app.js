@@ -11,17 +11,37 @@
     var spotTable = document.getElementById("spot-table");
     var spotStatus = document.getElementById("spot-status");
     var connectionStatus = document.getElementById("connection-status");
+    var locationStatus = document.getElementById("location-status");
     var dxAlert = document.getElementById("dx-alert");
     var srAnnouncer = document.getElementById("sr-announcer");
     var callsignSearch = document.getElementById("callsign-search");
+    var locateBtn = document.getElementById("locate-btn");
+    var gridInput = document.getElementById("grid-input");
+    var gridSetBtn = document.getElementById("grid-set-btn");
+    var phoneticToggle = document.getElementById("phonetic-toggle");
 
     // --- State ---
     var allSpots = [];
-    var maxTableRows = 200;
     var pendingAnnounceCount = 0;
     var announceTimer = null;
     var announceDebounceMs = 3000; // batch announcements over 3 seconds
     var storagePrefix = "dx-agg-";
+
+    // --- User location state ---
+    var userLat = null;
+    var userLon = null;
+    var userGrid = null;
+
+    // --- List size state ---
+    var listMode = "long"; // "long" (100) or "short" (10)
+    var listSizes = { long: 100, short: 20 };
+
+    function getMaxRows() {
+        return listSizes[listMode] || 100;
+    }
+
+    // --- Location restore flag (defer initial load until server knows location) ---
+    var locationRestorePending = false;
 
     // --- Grid freeze state ---
     var focusInGrid = false;
@@ -80,6 +100,29 @@
             var phonetic = localStorage.getItem(storagePrefix + "phonetic");
             if (phonetic === "1") phoneticToggle.checked = true;
             phoneticToggle.disabled = getAnnounceLevel() === "off";
+
+            // Restore user location
+            var savedGrid = localStorage.getItem(storagePrefix + "grid");
+            var savedLat = localStorage.getItem(storagePrefix + "lat");
+            var savedLon = localStorage.getItem(storagePrefix + "lon");
+            if (savedGrid) {
+                userGrid = savedGrid;
+                if (gridInput) gridInput.value = savedGrid;
+                if (savedLat && savedLon) {
+                    userLat = parseFloat(savedLat);
+                    userLon = parseFloat(savedLon);
+                }
+                updateLocationStatus("Your grid: " + userGrid);
+                locationRestorePending = true;
+                sendGridToBackend(savedGrid, false);
+            }
+
+            // Restore list mode
+            var savedListMode = localStorage.getItem(storagePrefix + "listMode");
+            if (savedListMode === "short" || savedListMode === "long") {
+                listMode = savedListMode;
+            }
+            restoreListRadio();
         } catch (e) { /* localStorage unavailable */ }
     }
 
@@ -140,8 +183,34 @@
         return freq ? freq.toFixed(1) : "";
     }
 
+    function isUsGrid(grid) {
+        // US Maidenhead grid fields: broadly CN/CO/DN/DO/DM/DL/CM/EL/EM/EN/EO/FL/FM/FN
+        // Simpler heuristic: US callsign prefixes start with W/K/N/A — but we check grid
+        // US spans roughly lon -125 to -66, lat 24 to 50 (grids CM..FN range)
+        if (!grid || grid.length < 2) return false;
+        var field1 = grid.charAt(0).toUpperCase();
+        var field2 = grid.charAt(1).toUpperCase();
+        // US lower-48 + close: fields C-F columns, rows L-O (approx)
+        // More precisely: DL, DM, DN, DO, EL, EM, EN, EO, CM, CN, FL, FM, FN
+        var usFields = ["CM", "CN", "CO", "DL", "DM", "DN", "DO", "EL", "EM", "EN", "EO", "FL", "FM", "FN"];
+        return usFields.indexOf(field1 + field2) !== -1;
+    }
+
+    function usesMiles() {
+        return isUsGrid(userGrid);
+    }
+
+    var KM_TO_MI = 0.621371;
+
+    function formatDistance(km) {
+        if (km == null) return "";
+        if (usesMiles()) {
+            return Math.round(km * KM_TO_MI).toLocaleString() + " mi";
+        }
+        return Math.round(km).toLocaleString() + " km";
+    }
+
     // --- Speech formatting for screen readers ---
-    var phoneticToggle = document.getElementById("phonetic-toggle");
     var natoAlphabet = {
         A: "Alpha", B: "Bravo", C: "Charlie", D: "Delta", E: "Echo",
         F: "Foxtrot", G: "Golf", H: "Hotel", I: "India", J: "Juliet",
@@ -188,6 +257,14 @@
         parts.push(speakFrequency(spot.frequency));
         if (spot.band) parts.push(speakBand(spot.band));
         if (spot.mode) parts.push(spot.mode);
+        if (spot.distanceKm != null) {
+            if (usesMiles()) {
+                parts.push(Math.round(spot.distanceKm * KM_TO_MI) + " miles");
+            } else {
+                parts.push(Math.round(spot.distanceKm) + " kilometers");
+            }
+        }
+        if (spot.bearing != null) parts.push("bearing " + Math.round(spot.bearing) + " degrees");
         if (spot.spotter) parts.push("spotted by " + spellCall(spot.spotter));
         if (spot.snr != null) parts.push("SNR " + spot.snr);
         if (spot.source) parts.push(spot.source);
@@ -199,6 +276,7 @@
         var tr = document.createElement("tr");
         tr.dataset.band = spot.band || "";
         tr.dataset.mode = spot.mode || "";
+        tr.dataset.distance = (spot.distanceKm != null) ? spot.distanceKm.toString() : "";
         tr.className = "band-" + (spot.band || "unknown").replace("m", "");
         tr.tabIndex = 0;
         tr.setAttribute("aria-label", buildRowSummary(spot));
@@ -209,6 +287,7 @@
             formatFrequency(spot.frequency),
             spot.band || "",
             spot.mode || "",
+            formatDistance(spot.distanceKm),
             spot.spotter || "",
             spot.snr != null ? spot.snr.toString() : "",
             spot.source || "",
@@ -224,22 +303,59 @@
         return tr;
     }
 
+    function updateAriaSortAttributes() {
+        var timeHeader = spotTable.querySelector('th[aria-sort]');
+        var distHeader = spotTable.querySelectorAll('thead th')[5]; // Distance is 6th column (index 5)
+
+        if (userLat != null) {
+            // Sorted by distance
+            if (timeHeader) timeHeader.removeAttribute("aria-sort");
+            if (distHeader) distHeader.setAttribute("aria-sort", "descending");
+        } else {
+            // Sorted by time
+            var firstTh = spotTable.querySelector('thead th');
+            if (firstTh) firstTh.setAttribute("aria-sort", "descending");
+            if (distHeader) distHeader.removeAttribute("aria-sort");
+        }
+    }
+
     function renderFullTable() {
         // Clear existing rows
         while (spotBody.firstChild) {
             spotBody.removeChild(spotBody.firstChild);
         }
 
-        var visibleCount = 0;
-        for (var i = 0; i < allSpots.length && visibleCount < maxTableRows; i++) {
+        // Filter spots
+        var filtered = [];
+        for (var i = 0; i < allSpots.length; i++) {
             if (spotMatchesFilters(allSpots[i])) {
-                spotBody.appendChild(createSpotRow(allSpots[i]));
-                visibleCount++;
+                filtered.push(allSpots[i]);
             }
         }
 
+        // Sort by distance (farthest first) if user location is known
+        if (userLat != null) {
+            filtered.sort(function (a, b) {
+                var da = a.distanceKm != null ? a.distanceKm : -1;
+                var db = b.distanceKm != null ? b.distanceKm : -1;
+                return db - da;
+            });
+        }
+
+        // Truncate to list size
+        var max = getMaxRows();
+        var visibleCount = 0;
+        for (var i = 0; i < filtered.length && visibleCount < max; i++) {
+            spotBody.appendChild(createSpotRow(filtered[i]));
+            visibleCount++;
+        }
+
         spotTable.setAttribute("aria-rowcount", visibleCount.toString());
-        spotStatus.textContent = "Showing " + visibleCount + " spot" + (visibleCount !== 1 ? "s" : "");
+        var statusText = "Showing " + visibleCount + " spot" + (visibleCount !== 1 ? "s" : "");
+        if (userLat != null) statusText += ", sorted by distance";
+        spotStatus.textContent = statusText;
+
+        updateAriaSortAttributes();
     }
 
     // --- Grid freeze helpers ---
@@ -278,20 +394,43 @@
         if (!spotMatchesFilters(spot)) return;
 
         var row = createSpotRow(spot);
+        var max = getMaxRows();
 
-        if (spotBody.firstChild) {
-            spotBody.insertBefore(row, spotBody.firstChild);
+        if (userLat != null && spot.distanceKm != null) {
+            // Distance-sorted insertion (descending — farthest first)
+            var rows = spotBody.children;
+            var inserted = false;
+            for (var i = 0; i < rows.length; i++) {
+                var rowDist = parseFloat(rows[i].dataset.distance);
+                if (isNaN(rowDist) || spot.distanceKm > rowDist) {
+                    spotBody.insertBefore(row, rows[i]);
+                    inserted = true;
+                    break;
+                }
+            }
+            if (!inserted && rows.length < max) {
+                spotBody.appendChild(row);
+            } else if (!inserted) {
+                return; // Nearer than all displayed spots and list full; skip
+            }
         } else {
-            spotBody.appendChild(row);
+            // No distance sorting: newest first
+            if (spotBody.firstChild) {
+                spotBody.insertBefore(row, spotBody.firstChild);
+            } else {
+                spotBody.appendChild(row);
+            }
         }
 
-        while (spotBody.children.length > maxTableRows) {
+        while (spotBody.children.length > max) {
             spotBody.removeChild(spotBody.lastChild);
         }
 
         var count = spotBody.children.length;
         spotTable.setAttribute("aria-rowcount", count.toString());
-        spotStatus.textContent = "Showing " + count + " spot" + (count !== 1 ? "s" : "");
+        var statusText = "Showing " + count + " spot" + (count !== 1 ? "s" : "");
+        if (userLat != null) statusText += ", sorted by distance";
+        spotStatus.textContent = statusText;
     }
 
     function addSpotToTable(spot) {
@@ -318,6 +457,13 @@
             var text;
             if (pendingAnnounceCount === 1) {
                 text = spellCall(spot.dxCall) + " on " + speakFrequency(spot.frequency) + " " + (spot.mode || "") + " " + speakBand(spot.band);
+                if (spot.distanceKm != null) {
+                    if (usesMiles()) {
+                        text += ", " + Math.round(spot.distanceKm * KM_TO_MI) + " miles";
+                    } else {
+                        text += ", " + Math.round(spot.distanceKm) + " kilometers";
+                    }
+                }
             } else {
                 text = pendingAnnounceCount + " new spots added";
             }
@@ -333,28 +479,139 @@
         }, announceDebounceMs);
     }
 
+    // --- User location ---
+    function updateLocationStatus(text) {
+        if (locationStatus) locationStatus.textContent = text;
+    }
+
+    function requestGeolocation() {
+        if (!navigator.geolocation) {
+            updateLocationStatus("Geolocation not available");
+            return;
+        }
+
+        updateLocationStatus("Requesting location...");
+
+        navigator.geolocation.getCurrentPosition(
+            function (pos) {
+                userLat = pos.coords.latitude;
+                userLon = pos.coords.longitude;
+                sendLocationToBackend(userLat, userLon, false);
+            },
+            function () {
+                updateLocationStatus("Location denied or unavailable");
+            },
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 86400000 }
+        );
+    }
+
+    function sendLocationToBackend(lat, lon, skipReload) {
+        fetch("/api/location?lat=" + lat + "&lon=" + lon, { method: "POST" })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+                userLat = lat;
+                userLon = lon;
+                userGrid = data.grid || "";
+                if (gridInput) gridInput.value = userGrid;
+                try {
+                    localStorage.setItem(storagePrefix + "lat", lat.toString());
+                    localStorage.setItem(storagePrefix + "lon", lon.toString());
+                    localStorage.setItem(storagePrefix + "grid", userGrid);
+                } catch (e) { /* localStorage unavailable */ }
+                updateLocationStatus("Your grid: " + userGrid);
+                if (!skipReload) {
+                    loadInitialSpots();
+                }
+            })
+            .catch(function () {
+                updateLocationStatus("Could not send location to server");
+            });
+    }
+
+    function sendGridToBackend(grid, skipReload) {
+        fetch("/api/location/grid?grid=" + encodeURIComponent(grid), { method: "POST" })
+            .then(function (r) {
+                if (!r.ok) throw new Error("Invalid grid");
+                return r.json();
+            })
+            .then(function (data) {
+                userLat = data.lat;
+                userLon = data.lon;
+                userGrid = data.grid || grid.toUpperCase();
+                locationRestorePending = false;
+                try {
+                    localStorage.setItem(storagePrefix + "lat", data.lat.toString());
+                    localStorage.setItem(storagePrefix + "lon", data.lon.toString());
+                    localStorage.setItem(storagePrefix + "grid", userGrid);
+                } catch (e) { /* localStorage unavailable */ }
+                updateLocationStatus("Your grid: " + userGrid);
+                if (!skipReload) {
+                    loadInitialSpots();
+                }
+            })
+            .catch(function () {
+                locationRestorePending = false;
+                updateLocationStatus("Invalid grid square");
+            });
+    }
+
+    function setGridFromInput() {
+        var grid = (gridInput ? gridInput.value : "").trim().toUpperCase();
+        if (grid.length < 4) {
+            updateLocationStatus("Enter at least 4 characters (e.g. FN31)");
+            return;
+        }
+        sendGridToBackend(grid, false);
+    }
+
+    // --- List size radio buttons ---
+    function setListMode(mode) {
+        listMode = mode;
+        try {
+            localStorage.setItem(storagePrefix + "listMode", listMode);
+        } catch (e) { /* localStorage unavailable */ }
+        // Update radio buttons to reflect state
+        var radios = document.querySelectorAll('input[name="listsize"]');
+        for (var i = 0; i < radios.length; i++) {
+            radios[i].checked = (radios[i].value === listMode);
+        }
+        renderFullTable();
+    }
+
+    function restoreListRadio() {
+        var radios = document.querySelectorAll('input[name="listsize"]');
+        for (var i = 0; i < radios.length; i++) {
+            radios[i].checked = (radios[i].value === listMode);
+        }
+    }
+
+    // --- Normalize spot from REST or SignalR ---
+    function normalizeSpot(s) {
+        return {
+            id: s.id || s.Id,
+            dxCall: s.dxCall || s.DxCall || "",
+            frequency: s.frequency || s.Frequency || 0,
+            band: s.band || s.Band || "",
+            mode: s.mode || s.Mode || "",
+            spotter: s.spotter || s.Spotter || "",
+            snr: s.snr != null ? s.snr : (s.Snr != null ? s.Snr : null),
+            timestamp: s.timestamp || s.Timestamp || new Date().toISOString(),
+            source: s.source || s.Source || "",
+            dxccEntity: s.dxccEntity || s.DxccEntity || null,
+            grid: s.grid || s.Grid || null,
+            distanceKm: s.distanceKm != null ? s.distanceKm : (s.DistanceKm != null ? s.DistanceKm : null),
+            bearing: s.bearing != null ? s.bearing : (s.Bearing != null ? s.Bearing : null),
+            comment: s.comment || s.Comment || null,
+            desirabilityScore: s.desirabilityScore || s.DesirabilityScore || 0
+        };
+    }
+
     // --- Initial data load via REST ---
     function loadInitialSpots() {
-        fetch("/api/spots?limit=100")
+        fetch("/api/spots?limit=200")
             .then(function (response) { return response.json(); })
             .then(function (spots) {
-                allSpots = spots.map(function (s) {
-                    return {
-                        id: s.id,
-                        dxCall: s.dxCall || "",
-                        frequency: s.frequency || 0,
-                        band: s.band || "",
-                        mode: s.mode || "",
-                        spotter: s.spotter || "",
-                        snr: s.snr,
-                        timestamp: s.timestamp || "",
-                        source: s.source || "",
-                        dxccEntity: s.dxccEntity,
-                        grid: s.grid,
-                        comment: s.comment,
-                        desirabilityScore: s.desirabilityScore || 0
-                    };
-                });
+                allSpots = spots.map(normalizeSpot);
                 renderFullTable();
             })
             .catch(function (err) {
@@ -368,7 +625,7 @@
             console.warn("SignalR library not loaded — falling back to REST polling");
             connectionStatus.textContent = "REST only (no live updates)";
             connectionStatus.className = "status-reconnecting";
-            loadInitialSpots();
+            if (!locationRestorePending) loadInitialSpots();
             // Poll every 15 seconds as fallback
             setInterval(loadInitialSpots, 15000);
             return;
@@ -380,22 +637,7 @@
             .build();
 
         connection.on("NewSpot", function (spot) {
-            // Normalize property names (SignalR may camelCase them)
-            var normalized = {
-                id: spot.id || spot.Id,
-                dxCall: spot.dxCall || spot.DxCall || "",
-                frequency: spot.frequency || spot.Frequency || 0,
-                band: spot.band || spot.Band || "",
-                mode: spot.mode || spot.Mode || "",
-                spotter: spot.spotter || spot.Spotter || "",
-                snr: spot.snr != null ? spot.snr : (spot.Snr != null ? spot.Snr : null),
-                timestamp: spot.timestamp || spot.Timestamp || new Date().toISOString(),
-                source: spot.source || spot.Source || "",
-                dxccEntity: spot.dxccEntity || spot.DxccEntity || null,
-                grid: spot.grid || spot.Grid || null,
-                comment: spot.comment || spot.Comment || null,
-                desirabilityScore: spot.desirabilityScore || spot.DesirabilityScore || 0
-            };
+            var normalized = normalizeSpot(spot);
 
             // Add to front of array (newest first)
             allSpots.unshift(normalized);
@@ -425,18 +667,23 @@
             .then(function () {
                 connectionStatus.textContent = "Connected";
                 connectionStatus.className = "status-connected";
-                loadInitialSpots();
+                if (!locationRestorePending) loadInitialSpots();
             })
             .catch(function (err) {
                 console.error("SignalR connection failed:", err);
                 connectionStatus.textContent = "Connection failed";
                 connectionStatus.className = "status-disconnected";
                 // Still try to load spots via REST
-                loadInitialSpots();
+                if (!locationRestorePending) loadInitialSpots();
             });
     }
 
     setupSignalR();
+
+    // Request geolocation if not already saved
+    if (userLat == null) {
+        requestGeolocation();
+    }
 
     // --- Event listeners for filters ---
     var filterInputs = document.querySelectorAll('input[name="band"], input[name="mode"]');
@@ -475,6 +722,32 @@
         saveFilters();
     });
 
+    // List size radio buttons
+    var listRadios = document.querySelectorAll('input[name="listsize"]');
+    for (var lr = 0; lr < listRadios.length; lr++) {
+        listRadios[lr].addEventListener("change", function () {
+            setListMode(this.value);
+        });
+    }
+
+    // Grid set button and Enter key in grid input
+    if (gridSetBtn) {
+        gridSetBtn.addEventListener("click", setGridFromInput);
+    }
+    if (gridInput) {
+        gridInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                setGridFromInput();
+            }
+        });
+    }
+
+    // Auto-locate button (browser geolocation)
+    if (locateBtn) {
+        locateBtn.addEventListener("click", requestGeolocation);
+    }
+
     // --- Grid freeze: track focus in/out and movement ---
     spotBody.addEventListener("focusin", function () {
         focusInGrid = true;
@@ -501,6 +774,16 @@
 
     // --- Global keyboard shortcuts ---
     document.addEventListener("keydown", function (e) {
+        // F8 — manual refresh: flush frozen spots, re-render, restore focus to top of grid
+        if (e.key === "F8") {
+            e.preventDefault();
+            flushFrozenSpots();
+            renderFullTable();
+            var firstRow = spotBody.querySelector("tr");
+            if (firstRow) firstRow.focus();
+            return;
+        }
+
         if (!e.ctrlKey || e.shiftKey || e.altKey || e.metaKey) return;
 
         var handled = true;
@@ -519,6 +802,9 @@
             case "m": // First mode filter checkbox
                 var firstMode = document.querySelector('input[name="mode"]');
                 if (firstMode) firstMode.focus();
+                break;
+            case "l": // Location / grid input
+                if (gridInput) gridInput.focus();
                 break;
             default:
                 handled = false;

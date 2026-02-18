@@ -1,6 +1,6 @@
 /* ============================================================
    DX Cluster Aggregator — Stylesheet
-   Dual-audience: accessible for screen readers, attractive for sighted users
+   Two-column layout: config left, spots right
    ============================================================ */
 
 /* --- Reset & Base --- */
@@ -44,12 +44,48 @@ body {
     top: 0;
 }
 
-/* --- Mascot & header-left group --- */
+/* --- Two-column layout --- */
+main {
+    display: grid;
+    grid-template-columns: 340px 1fr;
+    gap: 0 12px;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.left-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 8px 12px;
+    overflow-y: auto;
+}
+
+.right-panel {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 12px 8px 0;
+    overflow: hidden;
+}
+
+/* --- Header (compact, left-panel only) --- */
+header {
+    background: #1a2332;
+    color: #fff;
+    padding: 12px 12px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+}
+
 .header-left {
     display: flex;
     align-items: center;
-    gap: 12px;
-    flex-shrink: 1;
+    gap: 8px;
     min-width: 0;
 }
 
@@ -57,47 +93,48 @@ body {
     flex-shrink: 0;
 }
 
-/* --- Header --- */
-header {
-    background: #1a2332;
-    color: #fff;
-    padding: 16px 24px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
 header h1 {
     margin: 0;
-    font-size: 1.4em;
+    font-size: 0.85em;
     font-weight: 600;
+    white-space: nowrap;
 }
 
 .tagline {
-    margin: 2px 0 0 0;
-    font-size: 0.75em;
+    margin: 0;
+    font-size: 0.65em;
     font-weight: 400;
     opacity: 0.8;
+    white-space: nowrap;
+}
+
+.header-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
 }
 
 /* Connection status indicator */
 #connection-status {
-    font-size: 0.9em;
-    padding: 4px 12px;
+    font-size: 0.75em;
+    padding: 2px 8px;
     border-radius: 4px;
     font-weight: 500;
+    white-space: nowrap;
 }
 .status-connected     { background: #28a745; color: #fff; }
 .status-reconnecting  { background: #ffc107; color: #000; }
 .status-disconnected  { background: #dc3545; color: #fff; }
 
-/* --- Main layout --- */
-main {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 16px 24px;
+/* Location status */
+#location-status {
+    font-size: 0.75em;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 500;
+    color: #ccc;
+    white-space: nowrap;
 }
 
 /* --- DX Alert banner --- */
@@ -105,10 +142,10 @@ main {
     background: #fff3cd;
     border: 2px solid #ffc107;
     border-radius: 6px;
-    padding: 12px 16px;
-    margin-bottom: 16px;
+    padding: 8px 12px;
     font-weight: 600;
-    font-size: 1.05em;
+    font-size: 0.9em;
+    flex-shrink: 0;
 }
 
 /* --- Filter section --- */
@@ -116,14 +153,14 @@ section[aria-label="Spot filters"] {
     background: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
-    padding: 10px 16px;
-    margin-bottom: 10px;
+    padding: 6px 10px;
+    flex-shrink: 0;
 }
 
 fieldset {
     border: none;
     padding: 0;
-    margin: 0 0 4px 0;
+    margin: 0 0 2px 0;
 }
 
 fieldset:last-of-type {
@@ -132,45 +169,45 @@ fieldset:last-of-type {
 
 legend {
     font-weight: 600;
-    font-size: 0.95em;
+    font-size: 0.8em;
     color: #333;
-    margin-bottom: 2px;
+    margin-bottom: 1px;
     padding: 0;
 }
 
 fieldset label {
     display: inline-block;
-    margin-right: 14px;
-    margin-bottom: 1px;
+    margin-right: 8px;
+    margin-bottom: 0;
     cursor: pointer;
-    font-size: 0.9em;
+    font-size: 0.8em;
 }
 
 fieldset label input[type="checkbox"],
 fieldset label input[type="radio"] {
-    margin-right: 4px;
+    margin-right: 2px;
 }
 
 /* Search row */
 .search-row {
-    margin: 4px 0;
+    margin: 2px 0;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .search-row label {
     font-weight: 600;
-    font-size: 0.9em;
+    font-size: 0.8em;
     white-space: nowrap;
 }
 
 #callsign-search {
-    padding: 6px 10px;
+    padding: 3px 6px;
     border: 1px solid #bbb;
     border-radius: 4px;
-    font-size: 0.95em;
-    width: 200px;
+    font-size: 0.85em;
+    width: 120px;
     font-family: inherit;
 }
 
@@ -180,12 +217,64 @@ fieldset label input[type="radio"] {
     border-color: #1a73e8;
 }
 
+/* --- List controls --- */
+.list-controls {
+    margin: 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.list-controls button {
+    padding: 3px 8px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 0.8em;
+    font-family: inherit;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.list-controls label {
+    font-weight: 600;
+    font-size: 0.8em;
+    white-space: nowrap;
+}
+
+.list-controls input[type="text"] {
+    padding: 3px 6px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font-size: 0.8em;
+    font-family: inherit;
+    text-transform: uppercase;
+}
+
+.list-controls input[type="text"]:focus {
+    outline: 2px solid #1a73e8;
+    outline-offset: 1px;
+    border-color: #1a73e8;
+}
+
+.list-controls button:hover {
+    background: #e8f0fe;
+    border-color: #1a73e8;
+}
+
+.list-controls button:focus-visible {
+    outline: 2px solid #1a73e8;
+    outline-offset: 2px;
+}
+
 /* --- Spot status --- */
 #spot-status {
-    font-size: 0.9em;
+    font-size: 0.8em;
     color: #555;
-    margin-bottom: 4px;
-    padding: 2px 0;
+    margin-bottom: 2px;
+    padding: 0;
+    flex-shrink: 0;
 }
 
 /* --- Spots table --- */
@@ -196,14 +285,14 @@ fieldset label input[type="radio"] {
     border: 1px solid #ddd;
     border-radius: 8px;
     overflow: hidden;
-    font-size: 0.9em;
+    font-size: 0.85em;
 }
 
 #spot-table caption {
     text-align: left;
-    padding: 10px 14px;
+    padding: 6px 10px;
     font-weight: 600;
-    font-size: 0.85em;
+    font-size: 0.8em;
     color: #666;
     caption-side: top;
 }
@@ -214,17 +303,17 @@ fieldset label input[type="radio"] {
 }
 
 #spot-table th {
-    padding: 5px 12px;
+    padding: 4px 10px;
     text-align: left;
     font-weight: 600;
-    font-size: 0.85em;
+    font-size: 0.8em;
     text-transform: uppercase;
     letter-spacing: 0.03em;
     white-space: nowrap;
 }
 
 #spot-table td {
-    padding: 3px 12px;
+    padding: 2px 10px;
     border-bottom: 1px solid #eee;
     white-space: nowrap;
 }
@@ -245,6 +334,40 @@ fieldset label input[type="radio"] {
     outline-offset: -2px;
 }
 
+/* Make table body scrollable */
+.right-panel {
+    min-height: 0;
+}
+
+#spot-table {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+#spot-table thead {
+    flex-shrink: 0;
+}
+
+#spot-table tbody {
+    overflow-y: auto;
+    flex: 1;
+}
+
+#spot-table thead tr,
+#spot-table tbody tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
+}
+
+/* Distance column — right-aligned with tabular numbers */
+#spot-table td:nth-child(6) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
 /* Band-colored left border (color + text — never color-only) */
 .band-160 { border-left: 4px solid #8B4513; }
 .band-80  { border-left: 4px solid #9932CC; }
@@ -263,8 +386,8 @@ fieldset label input[type="radio"] {
 /* --- Footer --- */
 footer {
     text-align: center;
-    padding: 20px;
-    font-size: 0.8em;
+    padding: 4px;
+    font-size: 0.7em;
     color: #888;
 }
 
@@ -274,30 +397,22 @@ footer {
     outline-offset: 2px;
 }
 
-/* --- Responsive --- */
+/* --- Responsive: collapse to single column on narrow screens --- */
 @media (max-width: 800px) {
-    header {
-        padding: 12px 16px;
-    }
     main {
-        padding: 12px 16px;
+        grid-template-columns: 1fr;
+        height: auto;
+        overflow: auto;
+    }
+    .right-panel {
+        padding: 8px 12px;
     }
     #spot-table {
         font-size: 0.8em;
     }
     #spot-table th,
     #spot-table td {
-        padding: 6px 8px;
-    }
-    fieldset label {
-        margin-right: 8px;
-        font-size: 0.85em;
-    }
-    .search-row {
-        flex-wrap: wrap;
-    }
-    #callsign-search {
-        width: 100%;
+        padding: 4px 6px;
     }
 }
 
@@ -305,6 +420,7 @@ footer {
 @media print {
     header { background: #fff; color: #000; }
     #spot-table thead { background: #eee; color: #000; }
-    section[aria-label="Spot filters"] { display: none; }
+    .left-panel { display: none; }
+    main { grid-template-columns: 1fr; }
     footer { display: none; }
 }
