@@ -42,9 +42,10 @@ NOTES
   G7VRD DX aggregation feed).
 
 FIREWALL
-Windows may prompt you to allow network access on first run.
-Click "Allow" - the app needs outbound access to connect to the
-G7VRD WebSocket feed, and local access so your browser can reach it.
+- Windows may prompt you to allow network access on first run.
+- Click "Allow" - the app needs outbound access to connect to the feeds, and local access so your browser can reach it.
 
 INTERFACE TO OTHER APPS
-To be determined
+- To be determined
+<br><br><img src="https://github.com/avantol/dx-cluster-aggregator/blob/master/DX-Cluster-Aggregator.JPG">
+
