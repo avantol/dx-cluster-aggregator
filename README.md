@@ -47,5 +47,6 @@ FIREWALL
 
 INTERFACE TO OTHER APPS
 - To be determined
-<br><br><img src="https://github.com/avantol/dx-cluster-aggregator/blob/master/DX-Cluster-Aggregator.JPG">
+- 
+<br><br><img src="https://github.com/avantol/dx-cluster-aggregator/blob/master/DX-Cluster-Aggregator2.JPG">
 
