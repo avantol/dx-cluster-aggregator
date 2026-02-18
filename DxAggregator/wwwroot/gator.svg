@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 64">
+  <!-- Tail -->
+  <path d="M25,36 Q8,32 3,22 Q5,16 12,20" fill="#4CAF50" stroke="#388E3C" stroke-width="0.5"/>
+  <!-- Tail spikes -->
+  <path d="M3,22 L5,17 L4,23 L7,18 L6,24" fill="#388E3C"/>
+
+  <!-- Body -->
+  <ellipse cx="100" cy="36" rx="75" ry="14" fill="#4CAF50"/>
+  <!-- Belly -->
+  <ellipse cx="100" cy="39" rx="55" ry="9" fill="#A5D6A7"/>
+
+  <!-- Back ridges -->
+  <g fill="#388E3C">
+    <polygon points="40,24 43,16 46,24"/>
+    <polygon points="53,22 56,14 59,22"/>
+    <polygon points="66,21 69,13 72,21"/>
+    <polygon points="79,20.5 82,12.5 85,20.5"/>
+    <polygon points="92,21 95,13 98,21"/>
+    <polygon points="105,21.5 108,13.5 111,21.5"/>
+    <polygon points="118,22 121,14 124,22"/>
+    <polygon points="131,23 134,16 137,23"/>
+    <polygon points="144,25 147,18 150,25"/>
+    <polygon points="157,27 160,21 163,27"/>
+  </g>
+
+  <!-- Head -->
+  <ellipse cx="185" cy="30" rx="18" ry="13" fill="#4CAF50"/>
+  <!-- Long snout — upper jaw -->
+  <ellipse cx="222" cy="28" rx="32" ry="7" fill="#4CAF50"/>
+  <ellipse cx="230" cy="26" rx="24" ry="4.5" fill="#43A047"/>
+  <!-- Lower jaw -->
+  <ellipse cx="218" cy="35" rx="28" ry="5" fill="#4CAF50"/>
+
+  <!-- Nostrils -->
+  <circle cx="250" cy="25" r="1.5" fill="#2E7D32"/>
+  <circle cx="246" cy="24" r="1.2" fill="#2E7D32"/>
+
+  <!-- Mouth line (smiling!) -->
+  <path d="M185,34 Q215,42 252,30" fill="none" stroke="#2E7D32" stroke-width="1.3" stroke-linecap="round"/>
+
+  <!-- Teeth — upper jaw, pointing down -->
+  <polygon points="192,34 193.5,38 195,34" fill="white"/>
+  <polygon points="200,35.5 201.5,39.5 203,35.5" fill="white"/>
+  <polygon points="208,36 209.5,40 211,36" fill="white"/>
+  <polygon points="216,36 217.5,40 219,36" fill="white"/>
+  <polygon points="224,35.5 225.5,39.5 227,35.5" fill="white"/>
+  <polygon points="232,34.5 233.5,38.5 235,34.5" fill="white"/>
+  <polygon points="240,33 241.5,37 243,33" fill="white"/>
+  <!-- Teeth — lower jaw, pointing up -->
+  <polygon points="196,35 197.5,31.5 199,35" fill="white"/>
+  <polygon points="204,36 205.5,32.5 207,36" fill="white"/>
+  <polygon points="212,36.5 213.5,33 215,36.5" fill="white"/>
+  <polygon points="220,36 221.5,32.5 223,36" fill="white"/>
+  <polygon points="228,35 229.5,31.5 231,35" fill="white"/>
+  <polygon points="236,33.5 237.5,30 239,33.5" fill="white"/>
+
+  <!-- Eye (big, cute, cartoonish) -->
+  <circle cx="180" cy="23" r="7" fill="white"/>
+  <circle cx="182" cy="23" r="4.5" fill="#333"/>
+  <circle cx="184" cy="21" r="1.8" fill="white"/>
+  <!-- Eyelid (friendly expression) -->
+  <path d="M174,20 Q180,17 187,20" fill="none" stroke="#388E3C" stroke-width="1.2"/>
+
+  <!-- Legs -->
+  <g fill="#43A047">
+    <!-- Front legs -->
+    <path d="M145,47 L148,55 L151,55 L154,55 L149,47"/>
+    <path d="M130,48 L132,56 L135,56 L138,56 L135,48"/>
+    <!-- Back legs -->
+    <path d="M60,47 L57,55 L60,55 L63,55 L62,47"/>
+    <path d="M45,45 L41,53 L44,53 L47,53 L47,45"/>
+  </g>
+
+  <!-- Toes -->
+  <g fill="#388E3C">
+    <circle cx="148" cy="55.5" r="1.2"/>
+    <circle cx="151" cy="55.5" r="1.2"/>
+    <circle cx="154" cy="55.5" r="1.2"/>
+    <circle cx="132" cy="56.5" r="1.2"/>
+    <circle cx="135" cy="56.5" r="1.2"/>
+    <circle cx="138" cy="56.5" r="1.2"/>
+    <circle cx="57" cy="55.5" r="1.2"/>
+    <circle cx="60" cy="55.5" r="1.2"/>
+    <circle cx="63" cy="55.5" r="1.2"/>
+    <circle cx="41" cy="53.5" r="1.2"/>
+    <circle cx="44" cy="53.5" r="1.2"/>
+    <circle cx="47" cy="53.5" r="1.2"/>
+  </g>
+</svg>

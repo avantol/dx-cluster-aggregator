@@ -1,0 +1,310 @@
+/* ============================================================
+   DX Cluster Aggregator — Stylesheet
+   Dual-audience: accessible for screen readers, attractive for sighted users
+   ============================================================ */
+
+/* --- Reset & Base --- */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    font-family: Segoe UI, -apple-system, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: #f5f6fa;
+    color: #222;
+    line-height: 1.5;
+}
+
+/* --- Visually Hidden (screen-reader only) --- */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* Skip link — visible on focus for keyboard users */
+.skip-link {
+    position: absolute;
+    top: -100%;
+    left: 0;
+    background: #1a73e8;
+    color: #fff;
+    padding: 8px 16px;
+    z-index: 1000;
+    font-weight: bold;
+    text-decoration: none;
+}
+.skip-link:focus {
+    top: 0;
+}
+
+/* --- Mascot & header-left group --- */
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 1;
+    min-width: 0;
+}
+
+.mascot {
+    flex-shrink: 0;
+}
+
+/* --- Header --- */
+header {
+    background: #1a2332;
+    color: #fff;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.4em;
+    font-weight: 600;
+}
+
+.tagline {
+    margin: 2px 0 0 0;
+    font-size: 0.75em;
+    font-weight: 400;
+    opacity: 0.8;
+}
+
+/* Connection status indicator */
+#connection-status {
+    font-size: 0.9em;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+}
+.status-connected     { background: #28a745; color: #fff; }
+.status-reconnecting  { background: #ffc107; color: #000; }
+.status-disconnected  { background: #dc3545; color: #fff; }
+
+/* --- Main layout --- */
+main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 24px;
+}
+
+/* --- DX Alert banner --- */
+#dx-alert:not(:empty) {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    font-size: 1.05em;
+}
+
+/* --- Filter section --- */
+section[aria-label="Spot filters"] {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 10px;
+}
+
+fieldset {
+    border: none;
+    padding: 0;
+    margin: 0 0 4px 0;
+}
+
+fieldset:last-of-type {
+    margin-bottom: 0;
+}
+
+legend {
+    font-weight: 600;
+    font-size: 0.95em;
+    color: #333;
+    margin-bottom: 2px;
+    padding: 0;
+}
+
+fieldset label {
+    display: inline-block;
+    margin-right: 14px;
+    margin-bottom: 1px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+fieldset label input[type="checkbox"],
+fieldset label input[type="radio"] {
+    margin-right: 4px;
+}
+
+/* Search row */
+.search-row {
+    margin: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-row label {
+    font-weight: 600;
+    font-size: 0.9em;
+    white-space: nowrap;
+}
+
+#callsign-search {
+    padding: 6px 10px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    font-size: 0.95em;
+    width: 200px;
+    font-family: inherit;
+}
+
+#callsign-search:focus {
+    outline: 2px solid #1a73e8;
+    outline-offset: 1px;
+    border-color: #1a73e8;
+}
+
+/* --- Spot status --- */
+#spot-status {
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 4px;
+    padding: 2px 0;
+}
+
+/* --- Spots table --- */
+#spot-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    font-size: 0.9em;
+}
+
+#spot-table caption {
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 0.85em;
+    color: #666;
+    caption-side: top;
+}
+
+#spot-table thead {
+    background: #2c3e50;
+    color: #fff;
+}
+
+#spot-table th {
+    padding: 5px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.85em;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+#spot-table td {
+    padding: 3px 12px;
+    border-bottom: 1px solid #eee;
+    white-space: nowrap;
+}
+
+#spot-table tbody tr:hover {
+    background: #e8f0fe;
+}
+
+#spot-table tbody tr:focus {
+    background: #d2e3fc;
+    outline: 2px solid #1a73e8;
+    outline-offset: -2px;
+}
+
+#spot-table tbody tr:focus-visible {
+    background: #d2e3fc;
+    outline: 2px solid #1a73e8;
+    outline-offset: -2px;
+}
+
+/* Band-colored left border (color + text — never color-only) */
+.band-160 { border-left: 4px solid #8B4513; }
+.band-80  { border-left: 4px solid #9932CC; }
+.band-60  { border-left: 4px solid #2F4F4F; }
+.band-40  { border-left: 4px solid #DC143C; }
+.band-30  { border-left: 4px solid #FF8C00; }
+.band-20  { border-left: 4px solid #1E90FF; }
+.band-17  { border-left: 4px solid #20B2AA; }
+.band-15  { border-left: 4px solid #32CD32; }
+.band-12  { border-left: 4px solid #FFD700; }
+.band-10  { border-left: 4px solid #FF6347; }
+.band-6   { border-left: 4px solid #BA55D3; }
+.band-2   { border-left: 4px solid #4169E1; }
+.band-unknown { border-left: 4px solid #999; }
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 0.8em;
+    color: #888;
+}
+
+/* --- Focus styles (accessibility) --- */
+:focus-visible {
+    outline: 2px solid #1a73e8;
+    outline-offset: 2px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 800px) {
+    header {
+        padding: 12px 16px;
+    }
+    main {
+        padding: 12px 16px;
+    }
+    #spot-table {
+        font-size: 0.8em;
+    }
+    #spot-table th,
+    #spot-table td {
+        padding: 6px 8px;
+    }
+    fieldset label {
+        margin-right: 8px;
+        font-size: 0.85em;
+    }
+    .search-row {
+        flex-wrap: wrap;
+    }
+    #callsign-search {
+        width: 100%;
+    }
+}
+
+/* --- Print --- */
+@media print {
+    header { background: #fff; color: #000; }
+    #spot-table thead { background: #eee; color: #000; }
+    section[aria-label="Spot filters"] { display: none; }
+    footer { display: none; }
+}

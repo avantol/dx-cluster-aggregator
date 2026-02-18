@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DX Cluster Aggregator</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<a href="#spot-table" class="visually-hidden skip-link">Skip to spots table</a>
+
+<header>
+  <div class="header-left">
+    <img src="gator.svg" alt="" height="72" class="mascot" aria-hidden="true">
+    <div>
+      <h1>DX Cluster Aggregator</h1>
+      <p class="tagline">Accessible to blind and vision-impaired hams</p>
+    </div>
+  </div>
+  <div id="connection-status" role="status" aria-live="polite">Connecting...</div>
+</header>
+
+<main>
+  <!-- DX Alert — high-priority spots announced immediately -->
+  <div id="dx-alert" role="alert" aria-label="DX alert"></div>
+
+  <!-- Filter controls -->
+  <section aria-label="Spot filters">
+    <fieldset>
+      <legend>Band Filter</legend>
+      <label><input type="checkbox" name="band" value="160m"> 160m</label>
+      <label><input type="checkbox" name="band" value="80m"> 80m</label>
+      <label><input type="checkbox" name="band" value="60m"> 60m</label>
+      <label><input type="checkbox" name="band" value="40m"> 40m</label>
+      <label><input type="checkbox" name="band" value="30m"> 30m</label>
+      <label><input type="checkbox" name="band" value="20m" checked> 20m</label>
+      <label><input type="checkbox" name="band" value="17m"> 17m</label>
+      <label><input type="checkbox" name="band" value="15m" checked> 15m</label>
+      <label><input type="checkbox" name="band" value="12m"> 12m</label>
+      <label><input type="checkbox" name="band" value="10m" checked> 10m</label>
+      <label><input type="checkbox" name="band" value="6m"> 6m</label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Mode Filter</legend>
+      <label><input type="checkbox" name="mode" value="FT8" checked> FT8</label>
+      <label><input type="checkbox" name="mode" value="FT4"> FT4</label>
+      <label><input type="checkbox" name="mode" value="CW"> CW</label>
+      <label><input type="checkbox" name="mode" value="SSB"> SSB</label>
+      <label><input type="checkbox" name="mode" value="RTTY"> RTTY</label>
+    </fieldset>
+
+    <div class="search-row">
+      <label for="callsign-search">Search callsign or prefix (optional):</label>
+      <input type="search" id="callsign-search" placeholder="e.g. W1AW"
+             aria-describedby="search-help" autocomplete="off">
+      <span id="search-help" class="visually-hidden">Type a callsign to filter the spot list</span>
+      <label><input type="checkbox" id="phonetic-toggle"> Announce using phonetic alphabet</label>
+    </div>
+
+    <fieldset>
+      <legend>Screen Reader Announcements</legend>
+      <label><input type="radio" name="announce" value="assertive">
+        Announce immediately, can interrupt</label>
+      <label><input type="radio" name="announce" value="polite" checked>
+        Announce with no interruption (default)</label>
+      <label><input type="radio" name="announce" value="off">
+        No screen reader in use</label>
+    </fieldset>
+  </section>
+
+  <!-- Spot count status -->
+  <div id="spot-status" role="status" aria-live="polite" aria-atomic="true">
+    No spots yet
+  </div>
+
+  <!-- Spots data table -->
+  <table id="spot-table" aria-label="DX Cluster Spots" aria-rowcount="0">
+    <caption class="visually-hidden">DX Cluster Spots</caption>
+    <thead>
+      <tr>
+        <th scope="col" aria-sort="descending">Time (UTC)</th>
+        <th scope="col">DX Call</th>
+        <th scope="col">Frequency</th>
+        <th scope="col">Band</th>
+        <th scope="col">Mode</th>
+        <th scope="col">Spotter</th>
+        <th scope="col">SNR</th>
+        <th scope="col">Source</th>
+        <th scope="col">Comment</th>
+      </tr>
+    </thead>
+    <tbody id="spot-body" aria-live="polite" aria-relevant="additions">
+    </tbody>
+  </table>
+
+  <!-- Screen-reader-only announcer for batched updates -->
+  <div id="sr-announcer" aria-live="polite" class="visually-hidden">
+  </div>
+</main>
+
+<footer>
+  <p>Data: G7VRD aggregated feed (DX cluster + RBN + PSK Reporter + WSPR)</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.25/signalr.min.js"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="app.js"></script>
+</body>
+</html>

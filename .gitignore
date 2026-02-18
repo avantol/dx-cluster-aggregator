@@ -1,0 +1,26 @@
+# Build output
+bin/
+obj/
+
+# Publish output
+publish/
+
+# SQLite database (auto-created at runtime)
+*.db
+*.db-shm
+*.db-wal
+
+# IDE
+.vs/
+*.user
+
+# OS
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Planning docs and installers (not part of source)
+*.pdf
+*.vsix
+/*.html
+nul
