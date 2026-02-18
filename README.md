@@ -4,24 +4,17 @@ This app aggregates DX spots from multiple sources simultaneously, for selected 
 
 It emphasizes accessibility for blind and vision-impaired amateur radio operators.
 
-This is ultimately a web app, for now the "server" is on your PC during testing. Please forgive the inconvenience of having a setup procedure, it's temporary.
-
-Run the web app in your browser (full instructions below).
+This is ultimately a web app, for now the "server" is on your PC during testing. Please forgive the inconvenience of having a setup procedure, it's temporary. Run the web app in your browser (full instructions below).
 
 Accessibility features are  implemented and testable.
 
 KEY COMMANDS (keep this short list handy)
-
-Ctrl+S — Focus first row in the spot list
-
-Ctrl+P — Focus the optional callsign/prefix search box
-
-Ctrl+B — Focus the first band filter checkbox
-
-Ctrl+M — Focus the first mode filter checkbox
+<br>Ctrl+S — Focus first row in the spot list
+<br>Ctrl+P — Focus the optional callsign/prefix search/match box
+<br>Ctrl+B — Focus the first band filter checkbox
+<br>Ctrl+M — Focus the first mode filter checkbox
 
 Note: For now, FT8 spots are unfiltered, and come in far too quickly. 
-
 Leave FT8 mode unchecked most of the time while evaluating, or enable only briefly... filtering will happen after some further discussion.
 
 The list freezes while you tab up and down. After a minute of no activity, it starts scfrolling again. Ctrl-S is "home base", the top of the list, very handy. 
