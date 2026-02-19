@@ -17,7 +17,7 @@
       <div class="header-left">
         <img src="gator.svg" alt="" width="69" height="33" class="mascot" aria-hidden="true">
         <div>
-          <h1>DX Cluster Aggregator</h1>
+          <h1>DX Cluster Aggregator v0.3</h1>
           <p class="tagline">Accessible to blind and vision-impaired hams</p>
         </div>
       </div>
@@ -57,14 +57,10 @@
       </fieldset>
 
       <div class="search-row">
-        <label for="callsign-search">Search callsign:</label>
+        <label for="callsign-search">Match prefix or callsign:</label>
         <input type="search" id="callsign-search" placeholder="e.g. W1AW"
                aria-describedby="search-help" autocomplete="off">
         <span id="search-help" class="visually-hidden">Type a callsign to filter the spot list</span>
-      </div>
-
-      <div class="list-controls" role="group" aria-label="Phonetic toggle">
-        <label><input type="checkbox" id="phonetic-toggle"> Phonetic</label>
       </div>
 
       <div class="list-controls" role="group" aria-label="List size controls">
@@ -73,7 +69,7 @@
       </div>
 
       <div class="list-controls" role="group" aria-label="Location controls">
-        <label for="grid-input">Grid:</label>
+        <label for="grid-input">QTH grid:</label>
         <input type="text" id="grid-input" placeholder="FN31pr" maxlength="6"
                aria-describedby="grid-help" autocomplete="off" style="width:70px">
         <button id="grid-set-btn" type="button">Set</button>
@@ -83,11 +79,12 @@
       </div>
 
       <fieldset>
-        <legend>Screen Reader Announcements</legend>
+        <legend>Screen reader mode</legend>
         <label><input type="radio" name="announce" value="polite" checked>
           Freeze grid: Ctrl-S, update: F8</label>
         <label><input type="radio" name="announce" value="off">
           Off</label>
+        <label><input type="checkbox" id="phonetic-toggle"> Use phonetic alphabet</label>
       </fieldset>
     </section>
 
@@ -114,6 +111,7 @@
           <th scope="col">Band</th>
           <th scope="col">Mode</th>
           <th scope="col">Distance</th>
+          <th scope="col">Azimuth</th>
           <th scope="col">Spotter</th>
           <th scope="col">SNR</th>
           <th scope="col">Source</th>

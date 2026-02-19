@@ -1,5 +1,9 @@
 "use strict";
 
+// Prevent browser scroll restoration on reload
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+window.scrollTo(0, 0);
+
 // ============================================================
 // DX Cluster Aggregator — Frontend
 // Accessible real-time spot display with SignalR push
@@ -44,6 +48,7 @@
     var locationRestorePending = false;
 
     // --- Grid freeze state ---
+    var reannouncing = false;
     var focusInGrid = false;
     var lastFocusMoveTime = 0;
     var frozenSpots = [];
@@ -210,6 +215,11 @@
         return Math.round(km).toLocaleString() + " km";
     }
 
+    function formatBearing(deg) {
+        if (deg == null) return "";
+        return Math.round(deg) + "\u00B0";
+    }
+
     // --- Speech formatting for screen readers ---
     var natoAlphabet = {
         A: "Alpha", B: "Bravo", C: "Charlie", D: "Delta", E: "Echo",
@@ -264,7 +274,7 @@
                 parts.push(Math.round(spot.distanceKm) + " kilometers");
             }
         }
-        if (spot.bearing != null) parts.push("bearing " + Math.round(spot.bearing) + " degrees");
+        if (spot.bearing != null) parts.push(Math.round(spot.bearing) + " degrees");
         if (spot.spotter) parts.push("spotted by " + spellCall(spot.spotter));
         if (spot.snr != null) parts.push("SNR " + spot.snr);
         if (spot.source) parts.push(spot.source);
@@ -288,6 +298,7 @@
             spot.band || "",
             spot.mode || "",
             formatDistance(spot.distanceKm),
+            formatBearing(spot.bearing),
             spot.spotter || "",
             spot.snr != null ? spot.snr.toString() : "",
             spot.source || "",
@@ -465,7 +476,7 @@
                     }
                 }
             } else {
-                text = pendingAnnounceCount + " new spots added";
+                text = pendingAnnounceCount + " new spots detected";
             }
 
             srAnnouncer.setAttribute("aria-live", level);
@@ -757,6 +768,7 @@
     spotBody.addEventListener("focusout", function (e) {
         // Only mark as left if focus actually moved outside the tbody
         setTimeout(function () {
+            if (reannouncing) return;
             if (!spotBody.contains(document.activeElement)) {
                 focusInGrid = false;
                 flushFrozenSpots();
@@ -790,7 +802,19 @@
         switch (e.key.toLowerCase()) {
             case "s": // Top of spot list
                 var firstRow = spotBody.querySelector("tr");
-                if (firstRow) firstRow.focus();
+                if (firstRow) {
+                    if (document.activeElement === firstRow) {
+                        // Already focused — blur then refocus to trigger re-announcement
+                        reannouncing = true;
+                        firstRow.blur();
+                        setTimeout(function () {
+                            firstRow.focus();
+                            reannouncing = false;
+                        }, 80);
+                    } else {
+                        firstRow.focus();
+                    }
+                }
                 break;
             case "p": // Prefix/callsign search box
                 callsignSearch.focus();
