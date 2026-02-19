@@ -1,6 +1,6 @@
-# DX Cluster Aggregator - Beta
+# DX Cluster Aggregator - Beta ("Gator")
 
-This app aggregates DX spots from multiple sources simultaneously, for selected bands (160m to 6m) and modes (FT8, CW, SSB, etc).
+"Gator" aggregates DX spots from multiple sources simultaneously, for selected bands (160m to 6m) and modes (FT8, CW, SSB, etc).
 
 It emphasizes accessibility for blind and vision-impaired amateur radio operators.
 
